@@ -20,3 +20,6 @@ print(item_name,quantity,price,in_stock)
 totalcost=quantity*price
 print(totalcost)
 
+# task_3
+user_name=input("name likh tera")
+user_age=int()
