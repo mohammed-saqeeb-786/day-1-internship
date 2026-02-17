@@ -47,112 +47,75 @@ print(df)
 
 
 
+
+
 # task 2
-# Import required libraries
 import pandas as pd
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import StandardScaler
 
-# -----------------------------
-# Step 1: Create Sample Dataset
-# -----------------------------
-data = {
-    'Age': [22, 25, 47, 52, 46, 56, 48, 30, 34, 40],
-    'Salary': [30000, 35000, 80000, 90000, 85000, 95000, 87000, 40000, 50000, 60000]
-}
-
+# 1. Create dummy data similar to your graph
+data = {'Age': [19, 25, 28, 32, 35, 38, 43]}
 df = pd.DataFrame(data)
 
-print("Original Data:")
-print(df)
+# 2. Initialize the Scaler
+scaler = StandardScaler()
 
+# 3. Fit and transform the data
+# We reshape because the scaler expects a 2D array
+df['Age_Scaled'] = scaler.fit_transform(df[['Age']])
 
-# ---------------------------------
-# Step 2: Standardization
-# (Mean = 0, Std = 1)
-# ---------------------------------
-standard_scaler = StandardScaler()
+# 4. Plotting the 'Before' and 'After'
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
 
-df_standardized = pd.DataFrame(
-    standard_scaler.fit_transform(df),
-    columns=df.columns
-)
+# Plot 1: Original Age (Similar to your uploaded image)
+sns.histplot(df['Age'], kde=True, ax=axes[0], color='skyblue')
+axes[0].set_title('Original Age Histogram')
+axes[0].set_xlabel('Age (Raw Years)')
 
-print("\nStandardized Data (Mean = 0, Std = 1):")
-print(df_standardized)
+# Plot 2: Scaled Age
+sns.histplot(df['Age_Scaled'], kde=True, ax=axes[1], color='salmon')
+axes[1].set_title('Scaled Age Histogram')
+axes[1].set_xlabel('Age (Standardized Units)')
 
+plt.tight_layout()
+plt.show()
 
-# ---------------------------------
-# Step 3: Normalization
-# (Range 0 to 1)
-# ---------------------------------
-minmax_scaler = MinMaxScaler()
-
-df_normalized = pd.DataFrame(
-    minmax_scaler.fit_transform(df),
-    columns=df.columns
-)
-
-print("\nNormalized Data (Range 0 to 1):")
-print(df_normalized)
-
+# Print values to see the difference
+print("Original Values:\n", df['Age'].values)
+print("\nScaled Values (Mean=0, Std=1):\n", df['Age_Scaled'].values)
 
 
 
 # task 3
-# Import required libraries
-import numpy as np
 import pandas as pd
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler, StandardScaler, PolynomialFeatures,OneHotEncoder
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
-
-# -----------------------------
-# Step 1: Create Non-Linear Data
-# -----------------------------
-np.random.seed(42)
-
-X = np.linspace(-5, 5, 100).reshape(-1, 1)
-y = 3 * X**2 + 2 * X + 5 + np.random.normal(0, 5, size=X.shape)
-
-# Split data
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+from sklearn.linear_model import LinearRegression
+df=pd.read_csv("gdp.csv")
+X_train,X_test,y_train,y_test = train_test_split(df[['Year']],df[['Value']],test_size=0.2,random_state=42)
 
 
-# ---------------------------------
-# Step 2: Linear Regression (Original Feature)
-# ---------------------------------
-linear_model = LinearRegression()
-linear_model.fit(X_train, y_train)
+model=LinearRegression()
+model.fit(X_train,y_train)
+baseline_pred=model.predict(X_test)
+baseline_score=r2_score(y_test, baseline_pred)
 
-y_pred_linear = linear_model.predict(X_test)
-
-r2_linear = r2_score(y_test, y_pred_linear)
-
-print("R² score using Original Feature:", r2_linear)
+print(baseline_score)
 
 
-# ---------------------------------
-# Step 3: Polynomial Features (Degree = 2)
-# ---------------------------------
-poly = PolynomialFeatures(degree=2)
-X_train_poly = poly.fit_transform(X_train)
-X_test_poly = poly.transform(X_test)
+poly=PolynomialFeatures(degree=2,include_bias=False)
 
-poly_model = LinearRegression()
-poly_model.fit(X_train_poly, y_train)
+X_train_poly=poly.fit_transform(X_train)
+X_test_poly=poly.transform(X_test)
 
-y_pred_poly = poly_model.predict(X_test_poly)
-
-r2_poly = r2_score(y_test, y_pred_poly)
-
-print("R² score using Polynomial Features (degree=2):", r2_poly)
-
-
-# ---------------------------------
-# Final Comparison
-# ---------------------------------
-if r2_poly > r2_linear:
-    print("\nPolynomial features improved the model! ✅")
-else:
-    print("\nPolynomial features did not improve the model.")
+poly_model=LinearRegression()
+poly_model.fit(X_train_poly,y_train)
+poly_pred=poly_model.predict(X_test_poly)
+poly_score=r2_score(y_test, poly_pred)
+print(poly_score)
